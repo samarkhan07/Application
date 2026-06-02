@@ -29,7 +29,7 @@ st.markdown("""
 # ---- CENTRAL CONFIG PLATFORM DATA MAPPING & SECURE TUNNEL ----
 # ==================== ADVANCED CONFIGURATION MATRIX ====================
 # Apne Bot Hosting ka exact URL yahan dalein (Bina slash '/' ke end me)
-BOT_HOSTING_URL = "http://your-bot-portfolio.pterodactyl.io"  
+BOT_HOSTING_URL = "http://fi13.bot-hosting.cloud:20767/"  
 WORKER_SECRET_TOKEN = "DARKSTAR_SECURE_PASSPHRASE_2026"
 # =======================================================================
 
