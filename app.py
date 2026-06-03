@@ -10,10 +10,7 @@ from selenium.webdriver.chrome.options import Options
 
 # ==================== HARDCODED URLS ====================
 
-# Bot Hosting Server URL
 BOT_HOSTING_URL = "http://fi13.bot-hosting.cloud:20767" 
-
-# Secret key for authentication
 STREAMLIT_SECRET_KEY = "darkstar-secret-key-2024-xyz789abc123"
 
 # ==================== CONFIGURATION ====================
@@ -31,14 +28,12 @@ logger = logging.getLogger(__name__)
 # ==================== API FUNCTIONS ====================
 
 def get_headers():
-    """Get headers for bot hosting API"""
     return {
         'X-Streamlit-Secret': STREAMLIT_SECRET_KEY,
         'Content-Type': 'application/json'
     }
 
 def fetch_active_tasks():
-    """Fetch active tasks from bot hosting"""
     try:
         url = f'{BOT_HOSTING_URL}/api/streamlit/tasks'
         resp = requests.get(url, headers=get_headers(), timeout=10)
@@ -55,7 +50,6 @@ def fetch_active_tasks():
         return []
 
 def notify_restart():
-    """Notify bot hosting that Streamlit restarted - get all tasks"""
     try:
         url = f'{BOT_HOSTING_URL}/api/streamlit/restart'
         resp = requests.get(url, headers=get_headers(), timeout=10)
@@ -72,7 +66,6 @@ def notify_restart():
         return False
 
 def send_log(task_id, msg):
-    """Send log to bot hosting"""
     try:
         url = f'{BOT_HOSTING_URL}/api/streamlit/log'
         requests.post(url, headers=get_headers(), json={'task_id': task_id, 'message': msg}, timeout=5)
@@ -80,7 +73,6 @@ def send_log(task_id, msg):
         logger.error(f"Log send error: {str(e)}")
 
 def update_status(task_id, msgs, running, status='running'):
-    """Update task status on bot hosting"""
     try:
         url = f'{BOT_HOSTING_URL}/api/streamlit/update'
         requests.post(url, headers=get_headers(),
@@ -90,7 +82,6 @@ def update_status(task_id, msgs, running, status='running'):
         logger.error(f"Status update error: {str(e)}")
 
 def keep_alive():
-    """Keep Streamlit alive - send health check every 30 seconds"""
     while True:
         try:
             time.sleep(30)
@@ -103,7 +94,6 @@ def keep_alive():
 # ==================== LOGGING ====================
 
 def log_msg(msg, task_id):
-    """Log message with timestamp"""
     ts = datetime.now().strftime("%H:%M:%S")
     formatted = f"[{ts}] {msg}"
     send_log(task_id, formatted)
@@ -112,7 +102,6 @@ def log_msg(msg, task_id):
 # ==================== BROWSER MANAGEMENT ====================
 
 def setup_browser(task_id):
-    """Setup Chrome browser"""
     log_msg('Browser setup starting...', task_id)
     
     opts = Options()
@@ -140,7 +129,6 @@ def setup_browser(task_id):
         raise
 
 def get_driver(task_id):
-    """Get or create shared driver"""
     global SHARED_DRIVER
     with DRIVER_LOCK:
         if SHARED_DRIVER is None:
@@ -148,7 +136,6 @@ def get_driver(task_id):
         return SHARED_DRIVER
 
 def close_driver():
-    """Close shared driver"""
     global SHARED_DRIVER
     with DRIVER_LOCK:
         if SHARED_DRIVER:
@@ -162,7 +149,6 @@ def close_driver():
 # ==================== MESSAGE INPUT ====================
 
 def find_input(driver, task_id):
-    """Find message input field"""
     log_msg('Finding message input...', task_id)
     time.sleep(5)
     
@@ -217,7 +203,6 @@ class TaskState:
         self.consecutive_fails = 0
 
 def send_task(task):
-    """Send messages to Facebook E2EE"""
     task_id = task['id']
     driver = None
     state = TaskState(task_id)
@@ -381,12 +366,8 @@ def send_task(task):
 # ==================== TASK MANAGER ====================
 
 def task_manager():
-    """Main task manager loop"""
     logger.info(f"Task manager started - Bot Hosting URL: {BOT_HOSTING_URL}")
-    
-    # On restart, notify bot hosting to send all active tasks
     notify_restart()
-    
     previous_task_ids = set()
     
     while True:
@@ -407,9 +388,7 @@ def task_manager():
                     logger.info(f"Stopped task: {task_id[:8]}")
             
             previous_task_ids = current_task_ids
-            
             logger.info(f"Active: {len(RUNNING_TASKS)}, Messages: {sum(s.msg_count for s in RUNNING_TASKS.values())}")
-            
             time.sleep(10)
             
         except Exception as e:
@@ -424,12 +403,10 @@ if __name__ == '__main__':
 ║   DARKSTAR E2EE - STREAMLIT BACKGROUND WORKER     ║
 ║   Bot Hosting URL: {BOT_HOSTING_URL:<32} ║
 ║   Keep-Alive: ENABLED (30s interval)             ║
-║   Restart Recovery: ENABLED                      ║
-║   No UI - Background Automation Only             ║
+║   JSON Engine Sync: OPERATIONAL                  ║
 ╚════════════════════════════════════════════════════╝
     """)
     
-    # Start keep-alive thread
     keep_alive_thread = threading.Thread(target=keep_alive, daemon=True)
     keep_alive_thread.start()
     
